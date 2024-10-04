@@ -1,101 +1,82 @@
-import Image from "next/image";
+'use client'
+import { useEffect, useState } from "react";
+import QuestionCard from "@/components/QuestionCard";
+import { Button } from "@/components/ui/button";
+import axios from "axios";
+import { Question } from "@/constants/Questions";
+import useGetFilters from "./custom hooks/useGetFilters";
+import FilterPage from "@/components/Filter";
+import useQuizData from "./custom hooks/useQuizData";
+
+export type Filter={
+  limit:string,
+  categories:string,
+  difficulties:string,
+}
+
+const URL=`https://the-trivia-api.com/v2/questions`;
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [searchParams,filter]=useGetFilters();
+  const {submitted,setSubmitted,currentQuestion,userAnswers,setUserAnswers,setCurrentQuestion,score,setScore,questions,setQuestions}=useQuizData();
+  const [loading,setLoading]=useState<boolean>(true);
+  
+  const fetchQuestions=async()=>{
+    setLoading(true);
+    const data=await axios.get(`${URL}?${new URLSearchParams(filter)}`);
+    const fetchedQuestions=data.data;
+    const modifiedQuestions=fetchedQuestions.map((question:Question)=>{
+      return {...question,options:[...question.incorrectAnswers,question.correctAnswer]};
+    })
+    setQuestions(modifiedQuestions);
+    setLoading(false);
+  }
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+  const onRestart=()=>{
+    setUserAnswers([]);
+    setScore(0);
+    setCurrentQuestion(0);
+    setSubmitted(false);
+    fetchQuestions();
+  }
+
+  useEffect(()=>{
+    onRestart();
+  },[searchParams])
+
+    
+  const onSubmit=()=>{
+    const score=userAnswers.reduce((total:number,currentValue,currentIndex:number)=>
+      {
+        return total+(questions[currentIndex].correctAnswer===currentValue?1:0);
+      }
+      ,0)
+    setSubmitted(true);
+    setScore(score);
+    }
+  
+  return (
+    <div>
+      <div className="flex flex-col gap-2 items-center justify-center w-full pt-4">
+        <h1 className="text-4xl tracking-wide font-bold">QUIZ APP</h1>
+         <FilterPage filter={filter}/>
+      </div>
+      <div className="flex mt-4 flex-col gap-4 items-center min-h-screen">
+      {
+        loading||questions.length===0?<div className="bg-[#5b64d4] rounded-md px-8 py-10 max-w-[800px] w-[95%] sm:w-[85%] md:w-[75%] lg:w-[60%] h-[400px] flex items-center justify-center text-2xl">Loading...</div>:
+        <>  
+          {
+            submitted&&
+            <p className="text-lg tracking-wide">Congratulations! Your score is {score}</p>
+          }
+          <QuestionCard question={questions[currentQuestion]} userAnswers={userAnswers} submitted={submitted} currentQuestion={currentQuestion} setUserAnswers={setUserAnswers} setCurrentQuestion={setCurrentQuestion} totalQuestions={questions.length} />
+          <div className="flex gap-4"> 
+            <Button disabled={submitted} onClick={onSubmit} variant={"secondary"} className="bg-green-500">Submit</Button>
+            <Button onClick={onRestart} variant={"secondary"} className="bg-orange-500">Restart</Button>
+          </div>
+      </>
+      }
     </div>
+  </div>
   );
 }
