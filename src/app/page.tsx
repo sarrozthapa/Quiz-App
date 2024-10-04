@@ -31,7 +31,6 @@ export default function Home() {
     setQuestions(modifiedQuestions);
     setLoading(false);
   }
-
   const onRestart=()=>{
     setUserAnswers([]);
     setScore(0);

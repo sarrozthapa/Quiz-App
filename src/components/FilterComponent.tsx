@@ -1,20 +1,17 @@
-
-import { RadioGroup, RadioGroupItem } from '@radix-ui/react-radio-group'
-import { Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@radix-ui/react-select'
 import { useRouter } from 'next/navigation'
-import React, { useState } from 'react'
 import { Checkbox } from './ui/checkbox'
+import { Filter } from '@/app/page';
 
 
 type Props={
     title:string,
     value:string,
-    options:any,
-    filter:any
+    options:{key:string,value:string}[],
+    filter:Filter,
 }
 const FilterComponent = ({title,value,options,filter}:Props) => {
   const router=useRouter();
-    const onCheckedChange=(chosenValue)=>{
+    const onCheckedChange=(chosenValue:string)=>{
         router.push(`?${new URLSearchParams({
             ...filter,[value]:chosenValue
         })}`)
@@ -27,9 +24,9 @@ const FilterComponent = ({title,value,options,filter}:Props) => {
         <div className='pl-5 flex flex-col gap-1'>
 
         {
-            options.map((option,index)=>{
+            options.map((option:{key:string,value:string},index:number)=>{
                 return <div key={index} onClick={()=>onCheckedChange(option.value)} className='cursor-pointer flex gap-2 items-center'>
-                    <Checkbox className='border-white' checked={option.value===filter[value]}/>
+                    <Checkbox className='border-white' checked={option.value===filter[value as 'limit'|'categories'|'difficulties']}/>
                     <h2 className=''>{option.key}</h2>
                 </div>
             })

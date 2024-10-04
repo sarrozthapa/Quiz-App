@@ -1,7 +1,7 @@
 import { Question } from '@/constants/Questions'
 import { Button } from './ui/button'
-import {motion, useInView} from  'framer-motion'
-import { useRef } from 'react'
+import { useEffect } from 'react'
+import { ArrowLeft, ArrowRight } from 'lucide-react'
 type Props={
     question:Question,
     userAnswers:[]|string[]
@@ -13,8 +13,10 @@ type Props={
 }
 const QuestionCard = ({question,userAnswers,currentQuestion,setUserAnswers,setCurrentQuestion,totalQuestions,submitted}:Props) => {
   
-    if(currentQuestion>=userAnswers.length)
-        setUserAnswers([...userAnswers,'']);
+    useEffect(()=>{
+        if(currentQuestion>=userAnswers.length)
+            setUserAnswers([...userAnswers,'']);
+    })
     const onClickHandler=(option:string)=>{
         if(submitted)
             return;
@@ -27,17 +29,8 @@ const QuestionCard = ({question,userAnswers,currentQuestion,setUserAnswers,setCu
 
     }
   return (
-    <motion.div 
+    <div
     className='bg-[#5b64d4] flex flex-col justify-between rounded-md px-8 py-10 min-h-[400px] max-w-[800px] w-[95%] sm:w-[85%] md:w-[75%] lg:w-[60%]'
-     initial={{
-        opacity:0,
-     }}
-     animate={{
-        opacity:100,
-     }}
-     transition={{
-        duration:0.5,
-     }}
      >
         <h1 className='text-xl'>{currentQuestion+1}{'. '}{question.question.text}</h1>
         <div className='flex flex-col gap-4 mt-8'>         
@@ -53,10 +46,10 @@ const QuestionCard = ({question,userAnswers,currentQuestion,setUserAnswers,setCu
             }
         </div>
         <div className='flex mt-4 justify-between'>
-            <Button disabled={currentQuestion===0} onClick={()=>setCurrentQuestion(currentQuestion-1)} className={`${currentQuestion===0&&'opacity-0'} hover:bg-slate-800`}>Prev</Button>
-            <Button onClick={()=>setCurrentQuestion(currentQuestion+1)} disabled={currentQuestion===totalQuestions-1} className={`${currentQuestion===totalQuestions-1&&'opacity-0'} hover:bg-slate-800`}>Next</Button>
+            <Button disabled={currentQuestion===0} onClick={()=>setCurrentQuestion(currentQuestion-1)} className={`${currentQuestion===0&&'opacity-0'} hover:bg-slate-800 flex gap-1 items-center`}><ArrowLeft className='h-5'/>Prev</Button>
+            <Button onClick={()=>setCurrentQuestion(currentQuestion+1)} disabled={currentQuestion===totalQuestions-1} className={`${currentQuestion===totalQuestions-1&&'opacity-0'} hover:bg-slate-800 flex gap-1 items-center`}>Next<ArrowRight className='h-5'/></Button>
         </div>
-    </motion.div>
+    </div>
   )
 }
 
